@@ -97,35 +97,45 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public NewsResponse save(NewsRequest request) {
-        if (repository.existsBySlug(request.getSlug())) {
-            throw new ConflictException("Ya existe una noticia con ese slug.");
-        }
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("La categoria no existe."));
+public NewsResponse save(NewsRequest request) {
 
-        //  VALIDACIÓN DEL AUTOR SELECCIONADO
-        Author author = null;
-        if (request.getAuthorId() != null) {
-            author = authorRepository.findById(request.getAuthorId())
-                    .orElseThrow(() -> new ResourceNotFoundException("El autor seleccionado no existe."));
-        }
+    if (repository.existsBySlug(request.getSlug())) {
+        throw new ConflictException("Ya existe una noticia con ese slug.");
+    }
 
-        //  ACTUALIZADO: Pasamos el objeto 'author' al mapper
-        News news = mapper.toEntity(request, category, author);
+    Category category = categoryRepository.findById(request.getCategoryId())
+            .orElseThrow(() -> new ResourceNotFoundException("La categoria no existe."));
 
-        if (news.getVistas() == null) {
-            news.setVistas(0);
-        }
-        if (news.getDestacada() == null) {
-            news.setDestacada(false);
-        }
-        if (news.getPublicada() == null) {
-            news.setPublicada(false);
-        }
+    Author author = null;
 
-        news = repository.save(news);
-        return mapper.toResponse(news);
+    if (request.getAuthorId() != null) {
+        author = authorRepository.findById(request.getAuthorId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("El autor seleccionado no existe."));
+    }
+
+    News news = mapper.toEntity(request, category, author);
+
+    if (news.getVistas() == null) {
+        news.setVistas(0);
+    }
+
+    if (news.getDestacada() == null) {
+        news.setDestacada(false);
+    }
+
+    if (news.getPublicada() == null) {
+        news.setPublicada(false);
+    }
+
+    // ASIGNAR FECHA AUTOMÁTICAMENTE AL PUBLICAR
+    if (Boolean.TRUE.equals(news.getPublicada()) && news.getFechaPublicacion() == null) {
+        news.setFechaPublicacion(LocalDateTime.now());
+    }
+
+    news = repository.save(news);
+
+    return mapper.toResponse(news);
     }
 
     @Override
