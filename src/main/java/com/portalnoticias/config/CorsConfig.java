@@ -21,9 +21,7 @@ public class CorsConfig {
         // ORÍGENES PERMITIDOS
         // ============================================================
         config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173",
-            "https://geossystems.com.mx",
-            "https://www.geossystems.com.mx"
+            "http://localhost:5173"
         ));
 
         // ============================================================
